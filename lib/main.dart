@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+late SharedPreferences prefs;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  prefs = await SharedPreferences.getInstance();
+
   runApp(MyApp());
 }
 
@@ -11,12 +18,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    bool isOnboarded = prefs.getBool("isOnboarded") ?? false;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: GoogleFonts.getTextTheme("Jua"),
       ),
-      home: OnboardingPage(),
+      home: isOnboarded ? HomePage() : OnboardingPage(),
     );
   }
 }
@@ -72,6 +82,8 @@ class OnboardingPage extends StatelessWidget {
         next: Text("Next", style: TextStyle(fontWeight: FontWeight.w600)),
         done: Text("Done", style: TextStyle(fontWeight: FontWeight.w600)),
         onDone: () {
+          prefs.setBool("isOnboarded", true);
+
           // When done button is press
           Navigator.pushReplacement(
             context,
@@ -91,6 +103,14 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Home Page!"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              prefs.clear();
+            },
+            icon: Icon(Icons.delete)
+          )
+        ],
       ),
       body: Center(
         child: Text("환영합니다!", style: TextStyle(fontSize: 24)),
